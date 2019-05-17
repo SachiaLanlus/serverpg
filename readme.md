@@ -8,4 +8,3 @@ ServeRPG is a rpg maker mv hosting service on heroku
 4. have fun
 ## deploy to your heroku 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-TODO
