@@ -31,7 +31,6 @@ class PostHandler(SimpleHTTPRequestHandler):
                 archive_file=fields.get('archive_file')[0]
         except:
             print('Process request error')
-            raise
             self.wfile.write(bytes('Error','utf-8'))
             self.connection.shutdown(1)
             return
