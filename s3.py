@@ -45,13 +45,13 @@ class PostHandler(SimpleHTTPRequestHandler):
                 f.write(archive_file)
                 del archive_file
         elif(archive_type=='link'):
-            p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link],stdout=open(os.devnull, 'w'))
+            p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
             p.wait()
         else:
             return
         try:
             #p=subprocess.Popen(['wsl','"unzip '+archive_base_path+archive_name+'.zip -d '+game_base_path+archive_name+'"'])
-            p=subprocess.Popen(['unzip',archive_base_path+archive_name+'.zip','-d',game_base_path+archive_name],stdout=open(os.devnull, 'w'))
+            p=subprocess.Popen(['unzip',archive_base_path+archive_name+'.zip','-d',game_base_path+archive_name],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
             p.wait()
         except:
             print('unzip error')
