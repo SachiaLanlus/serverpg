@@ -46,7 +46,7 @@ class PostHandler(SimpleHTTPRequestHandler):
             with open(archive_base_path+archive_name+'.zip','wb') as f:
                 f.write(archive_file)
                 del archive_file
-        elif(arvhie_type=='link'):
+        elif(archive_type=='link'):
             p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link])
             p.wait()
         else:
