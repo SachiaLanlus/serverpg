@@ -20,6 +20,7 @@ class PostHandler(SimpleHTTPRequestHandler):
         self.send_response(303)
         self.send_header('Location', 'game')
         self.end_headers()
+        archive_type='null'
         try:
             ctype,pdict=cgi.parse_header(self.headers.get('Content-Type'))
             pdict['boundary']=bytes(pdict['boundary'],'utf-8')
@@ -28,15 +29,28 @@ class PostHandler(SimpleHTTPRequestHandler):
             if(ctype=='multipart/form-data'):
                 fields=cgi.parse_multipart(self.rfile, pdict)
                 archive_name=fields.get('archive_name')[0]
-                archive_file=fields.get('archive_file')[0]
+                archive_file=fields.get('archive_file')
+                archive_link=fields.get('archive_link')
+                if(len(archive_file)>0):
+                    archive_file=archive_file[0]
+                    archive_type='file'
+                if(len(archive_link)>0):
+                    archive_link=archive_link[0]
+                    archive_type='link'
         except:
             print('Process request error')
             self.wfile.write(bytes('Error','utf-8'))
             self.connection.shutdown(1)
             return
-        with open(archive_base_path+archive_name+'.zip','wb') as f:
-            f.write(archive_file)
-            del archive_file
+        if(archive_type=='file'):
+            with open(archive_base_path+archive_name+'.zip','wb') as f:
+                f.write(archive_file)
+                del archive_file
+        elif(arvhie_type=='link'):
+            p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link])
+            p.wait()
+        else:
+            return
         try:
             #p=subprocess.Popen(['wsl','"unzip '+archive_base_path+archive_name+'.zip -d '+game_base_path+archive_name+'"'])
             p=subprocess.Popen(['unzip',archive_base_path+archive_name+'.zip','-d',game_base_path+archive_name])
