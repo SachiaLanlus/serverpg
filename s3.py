@@ -40,14 +40,20 @@ class PostHandler(SimpleHTTPRequestHandler):
             self.wfile.write(bytes('Error','utf-8'))
             self.connection.shutdown(1)
             return
+        print('archive_type='+archive_type)
         if(archive_type=='file'):
             with open(archive_base_path+archive_name+'.zip','wb') as f:
                 f.write(archive_file)
                 del archive_file
         elif(archive_type=='link'):
-            p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
-            p.wait()
+            try:
+                p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
+                p.wait()
+            except:
+                print('wget error')
+                return
         else:
+            print('do nothing')
             return
         try:
             #p=subprocess.Popen(['wsl','"unzip '+archive_base_path+archive_name+'.zip -d '+game_base_path+archive_name+'"'])
@@ -56,6 +62,7 @@ class PostHandler(SimpleHTTPRequestHandler):
         except:
             print('unzip error')
             return
+        print('finish')
         self.send_response(303)
         self.send_header('Location', 'game')
         self.end_headers()
