@@ -17,9 +17,6 @@ class PostHandler(SimpleHTTPRequestHandler):
         return
         
     def do_POST(self):
-        self.send_response(303)
-        self.send_header('Location', 'game')
-        self.end_headers()
         archive_type='null'
         try:
             ctype,pdict=cgi.parse_header(self.headers.get('Content-Type'))
@@ -58,6 +55,9 @@ class PostHandler(SimpleHTTPRequestHandler):
         except:
             print('unzip error')
             return
+        self.send_response(303)
+        self.send_header('Location', 'game')
+        self.end_headers()
         return
 
 
