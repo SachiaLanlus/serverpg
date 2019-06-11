@@ -27,14 +27,22 @@ class PostHandler(SimpleHTTPRequestHandler):
             if(ctype=='multipart/form-data'):
                 fields=cgi.parse_multipart(self.rfile, pdict)
                 archive_name=fields.get('archive_name')[0]
-                archive_file=fields.get('archive_file')
-                archive_link=fields.get('archive_link')
+                archive_file=fields.get('archive_file')[0]
+                archive_link=fields.get('archive_link')[0]
                 if(len(archive_file)>0):
-                    archive_file=archive_file[0]
+                    assert archive_type=='null'
                     archive_type='file'
                 if(len(archive_link)>0):
-                    archive_link=archive_link[0]
+                    assert archive_type=='null'
                     archive_type='link'
+        except AssertionError:
+            print('archive_type has multiple value')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=UTF-8')
+            self.end_headers()
+            self.wfile.write(bytes('Do NOT upload archive and link at the same time.','utf-8'))
+            self.connection.shutdown(1)
+            return
         except:
             print('Process request error')
             self.wfile.write(bytes('Error','utf-8'))
