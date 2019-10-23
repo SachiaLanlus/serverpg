@@ -3,10 +3,51 @@ import os
 import cgi
 import subprocess
 import sys
+import pyqrcode
+from pyunpack import Archive
 
 server_base_path='public/'
 game_base_path='game/'
 archive_base_path='archive/'
+
+def parse(qmap):
+    qmap=[list(x) for x in qmap.split('\n')]
+    output=''
+    tmp=''
+    pattern=''
+    for i in range(4,len(qmap)-4,2):
+        tmp=''
+        for j in range(4,len(qmap[i])-4):
+            pattern=qmap[i][j]+qmap[i+1][j]
+            if(pattern=='00'):
+                tmp+=' '
+            elif(pattern=='01'):
+                tmp+='▄'
+            elif(pattern=='10'):
+                tmp+='▀'
+            elif(pattern=='11'):
+                tmp+='█'
+            else:
+                pass
+        output+=tmp+'\n'
+    return output
+
+#https://stackoverflow.com/questions/8529265/
+#google-authenticator-implementation-in-python
+import hmac, base64, struct, hashlib, time
+
+def get_hotp_token(secret, intervals_no):
+    key = base64.b32decode(secret, True)
+    msg = struct.pack(">Q", intervals_no)
+    h = hmac.new(key, msg, hashlib.sha1).digest()
+    #o = ord(h[19]) & 15
+    o = h[19] & 15
+    h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+    return h
+
+def get_totp_token(secret):
+    return get_hotp_token(secret, intervals_no=int(time.time())//30)
+###############################################
 
 class PostHandler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -29,6 +70,14 @@ class PostHandler(SimpleHTTPRequestHandler):
                 archive_name=fields.get('archive_name')[0]
                 archive_file=fields.get('archive_file')[0]
                 archive_link=fields.get('archive_link')[0]
+                archive_format=fields.get('archive_format')[0]
+                htop=fields.get('htop_token')[0]
+                if(int(htop.strip())!=get_totp_token(secret)):
+                    print('htop token mismatch')
+                    print(htop.strip()+' vs '+str(get_totp_token(secret)))
+                    self.wfile.write(bytes('htop token mismatch','utf-8'))
+                    self.connection.shutdown(1)
+                    return
                 if(len(archive_file)>0):
                     assert archive_type=='null'
                     archive_type='file'
@@ -55,7 +104,7 @@ class PostHandler(SimpleHTTPRequestHandler):
                 del archive_file
         elif(archive_type=='link'):
             try:
-                p=subprocess.Popen(['wget','-O',archive_base_path+archive_name+'.zip',archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
+                p=subprocess.Popen(['wget','-q','-O',archive_base_path+archive_name+'.'+archive_format,archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
                 p.wait()
             except:
                 print('wget error')
@@ -64,11 +113,10 @@ class PostHandler(SimpleHTTPRequestHandler):
             print('do nothing')
             return
         try:
-            #p=subprocess.Popen(['wsl','"unzip '+archive_base_path+archive_name+'.zip -d '+game_base_path+archive_name+'"'])
-            p=subprocess.Popen(['unzip',archive_base_path+archive_name+'.zip','-d',game_base_path+archive_name],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
-            p.wait()
+            os.makedirs(game_base_path+archive_name,exist_ok=True)
+            Archive(archive_base_path+archive_name+'.'+archive_format).extractall(game_base_path+archive_name)
         except:
-            print('unzip error')
+            print('unzip/unrar error')
             return
         print('finish')
         self.send_response(303)
@@ -83,6 +131,12 @@ def StartServer():
     os.makedirs('archive',exist_ok=True)
     sever = ThreadingHTTPServer(("",int(os.environ.get('PORT',9999))),PostHandler)
     print('ready')
+    print()
+    secret=os.environ.get('SECRET',str(int(time.time()*10**6)))
+    uid='me'
+    mark='serverpg'
+    qr=pyqrcode.create('otpauth://totp/'+uid+'?secret='+secret+'&issuer='+mark)
+    print(parse(qr.text()))
     sever.serve_forever()
 
 if __name__=='__main__':

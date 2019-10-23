@@ -1,4 +1,9 @@
 {
   "name": "serverpg",
-  "description": "ServeRPG is a rpg maker mv hosting service on heroku"
+  "description": "ServeRPG is a rpg maker mv hosting service on heroku",
+  "env": {
+    "SECRET": {
+      "description": "This is the passphrase to generate htop, MUST be 16 character [0-9a-zA-Z]."
+    }
+  }
 }
