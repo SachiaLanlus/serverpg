@@ -104,7 +104,7 @@ class PostHandler(SimpleHTTPRequestHandler):
             return
         print('archive_type='+archive_type)
         if(archive_type=='file'):
-            with open(archive_base_path+archive_name+'.zip','wb') as f:
+            with open(archive_base_path+archive_name+'.'+archive_format,'wb') as f:
                 f.write(archive_file)
                 del archive_file
         elif(archive_type=='link'):
