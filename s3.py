@@ -5,6 +5,7 @@ import subprocess
 import sys
 import pyqrcode
 import traceback
+import stat
 
 server_base_path='public/'
 game_base_path='game/'
@@ -143,6 +144,7 @@ class PostHandler(SimpleHTTPRequestHandler):
 def StartServer():
     global secret
     os.chdir(server_base_path)
+    os.chmod('unrar',stat.S_IXUSR)
     os.makedirs('game',exist_ok=True)
     os.makedirs('archive',exist_ok=True)
     sever = ThreadingHTTPServer(("",int(os.environ.get('PORT',9999))),PostHandler)
