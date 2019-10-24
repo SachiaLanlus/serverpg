@@ -10,6 +10,7 @@ import traceback
 server_base_path='public/'
 game_base_path='game/'
 archive_base_path='archive/'
+secret=''
 
 def parse(qmap):
     qmap=[list(x) for x in qmap.split('\n')]
@@ -128,6 +129,7 @@ class PostHandler(SimpleHTTPRequestHandler):
 
 
 def StartServer():
+    global secret
     os.chdir(server_base_path)
     os.makedirs('game',exist_ok=True)
     os.makedirs('archive',exist_ok=True)
