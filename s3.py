@@ -89,6 +89,7 @@ class PostHandler(SimpleHTTPRequestHandler):
                     archive_type='link'
         except AssertionError:
             print('archive_type has multiple value')
+            traceback.print_exc()
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=UTF-8')
             self.end_headers()
@@ -117,6 +118,7 @@ class PostHandler(SimpleHTTPRequestHandler):
                 p.wait()
             except:
                 print('wget error')
+                traceback.print_exc()
                 return
         else:
             print('do nothing')
@@ -126,6 +128,7 @@ class PostHandler(SimpleHTTPRequestHandler):
             Archive(archive_base_path+archive_name+'.'+archive_format).extractall(game_base_path+archive_name,auto_create_dir=True)
         except:
             print('unzip/unrar error')
+            traceback.print_exc()
             return
         print('finish')
         self.send_response(303)
