@@ -132,11 +132,17 @@ def StartServer():
     sever = ThreadingHTTPServer(("",int(os.environ.get('PORT',9999))),PostHandler)
     print('ready')
     print()
-    secret=os.environ.get('SECRET',str(int(time.time()*10**6)))
+    passphrase=os.environ.get('PASSPHRASE',str(int(time.time())))
+    passphrase=passphrase[:10]
+    passphrase=' '*(len(passphrase)-10)+passphrase
+    secret=base64.b32encode(passphrase.encode('ascii')).decode('ascii')
     uid='me'
     mark='serverpg'
     qr=pyqrcode.create('otpauth://totp/'+uid+'?secret='+secret+'&issuer='+mark)
-    print(parse(qr.text()))
+    secret_url=os.environ.get('URL','')+'/'+server_base_path+hashlib.blake2b(data=bytes(secret,'ascii')+bytes(str(time.time()),'ascii'),digest_size=16).hexdigest()+'.svg'
+    print(secret_url)
+    qr.svg(secret_url, scale=8)
+    #print(parse(qr.text()))
     sever.serve_forever()
 
 if __name__=='__main__':
