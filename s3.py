@@ -4,7 +4,6 @@ import cgi
 import subprocess
 import sys
 import pyqrcode
-from pyunpack import Archive
 import traceback
 
 server_base_path='public/'
@@ -124,8 +123,12 @@ class PostHandler(SimpleHTTPRequestHandler):
             print('do nothing')
             return
         try:
-            #os.makedirs(game_base_path+archive_name,exist_ok=True)
-            Archive(archive_base_path+archive_name+'.'+archive_format).extractall(game_base_path+archive_name,auto_create_dir=True)
+            if(archive_format=='zip'):
+                p=subprocess.Popen(['unzip',archive_base_path+archive_name+'.'+archive_format,'-d',game_base_path+archive_name],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
+                p.wait()
+            elif(archive_format=='rar'):
+                p=subprocess.Popen(['./unrar','x','-idq',archive_base_path+archive_name+'.'+archive_format,'-d',game_base_path+archive_name+'/'],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
+                p.wait()
         except:
             print('unzip/unrar error')
             traceback.print_exc()
