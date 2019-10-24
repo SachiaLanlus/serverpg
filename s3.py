@@ -106,6 +106,7 @@ class PostHandler(SimpleHTTPRequestHandler):
                 f.write(archive_file)
                 del archive_file
         elif(archive_type=='link'):
+            self.connection.close()
             try:
                 p=subprocess.Popen(['wget','-q','-O',archive_base_path+archive_name+'.'+archive_format,archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
                 p.wait()
@@ -116,8 +117,8 @@ class PostHandler(SimpleHTTPRequestHandler):
             print('do nothing')
             return
         try:
-            os.makedirs(game_base_path+archive_name,exist_ok=True)
-            Archive(archive_base_path+archive_name+'.'+archive_format).extractall(game_base_path+archive_name)
+            #os.makedirs(game_base_path+archive_name,exist_ok=True)
+            Archive(archive_base_path+archive_name+'.'+archive_format).extractall(game_base_path+archive_name,auto_create_dir=True)
         except:
             print('unzip/unrar error')
             return
