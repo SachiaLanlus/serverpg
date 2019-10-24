@@ -62,6 +62,7 @@ class PostHandler(SimpleHTTPRequestHandler):
         
     def do_POST(self):
         archive_type='null'
+        parsed_ts=time.time()
         try:
             ctype,pdict=cgi.parse_header(self.headers.get('Content-Type'))
             pdict['boundary']=bytes(pdict['boundary'],'utf-8')
@@ -69,17 +70,17 @@ class PostHandler(SimpleHTTPRequestHandler):
             pdict['CONTENT-LENGTH'] = content_len
             if(ctype=='multipart/form-data'):
                 fields=cgi.parse_multipart(self.rfile, pdict)
-                if(int(htop.strip())!=get_totp_token(secret)):
-                    print('htop token mismatch')
-                    print(htop.strip()+' vs '+str(get_totp_token(secret)))
-                    self.wfile.write(bytes('htop token mismatch','utf-8'))
-                    self.connection.shutdown(1)
-                    return
                 archive_name=fields.get('archive_name')[0]
                 archive_file=fields.get('archive_file')[0]
                 archive_link=fields.get('archive_link')[0]
                 archive_format=fields.get('archive_format')[0]
                 htop=fields.get('htop_token')[0]
+                if(int(htop.strip())!=get_hotp_token(secret, intervals_no=int(parsed_ts)//30)):
+                    print('htop token mismatch')
+                    print(htop.strip()+' vs '+str(get_hotp_token(secret, intervals_no=int(parsed_ts)//30)))
+                    self.wfile.write(bytes('htop token mismatch','utf-8'))
+                    self.connection.shutdown(1)
+                    return
                 if(len(archive_file)>0):
                     assert archive_type=='null'
                     archive_type='file'
@@ -106,7 +107,11 @@ class PostHandler(SimpleHTTPRequestHandler):
                 f.write(archive_file)
                 del archive_file
         elif(archive_type=='link'):
-            self.connection.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=UTF-8')
+            self.end_headers()
+            self.wfile.write(bytes('Request sent.','utf-8'))
+            self.connection.shutdown(1)
             try:
                 p=subprocess.Popen(['wget','-q','-O',archive_base_path+archive_name+'.'+archive_format,archive_link],stdout=open(os.devnull, 'w'),stderr=subprocess.STDOUT)
                 p.wait()
