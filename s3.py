@@ -5,6 +5,7 @@ import subprocess
 import sys
 import pyqrcode
 from pyunpack import Archive
+import traceback
 
 server_base_path='public/'
 game_base_path='game/'
@@ -94,6 +95,7 @@ class PostHandler(SimpleHTTPRequestHandler):
             return
         except:
             print('Process request error')
+            traceback.print_exc()
             self.wfile.write(bytes('Error','utf-8'))
             self.connection.shutdown(1)
             return
