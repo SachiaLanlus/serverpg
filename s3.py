@@ -139,7 +139,7 @@ def StartServer():
     uid='me'
     mark='serverpg'
     qr=pyqrcode.create('otpauth://totp/'+uid+'?secret='+secret+'&issuer='+mark)
-    secret_url=os.environ.get('URL','')+'/'+server_base_path+hashlib.blake2b(data=bytes(secret,'ascii')+bytes(str(time.time()),'ascii'),digest_size=16).hexdigest()+'.svg'
+    secret_url=os.environ.get('URL','')+'/'+server_base_path+hashlib.blake2b(bytes(secret,'ascii')+bytes(str(time.time()),'ascii'),digest_size=16).hexdigest()+'.svg'
     print(secret_url)
     qr.svg(secret_url, scale=8)
     #print(parse(qr.text()))
