@@ -69,17 +69,17 @@ class PostHandler(SimpleHTTPRequestHandler):
             pdict['CONTENT-LENGTH'] = content_len
             if(ctype=='multipart/form-data'):
                 fields=cgi.parse_multipart(self.rfile, pdict)
-                archive_name=fields.get('archive_name')[0]
-                archive_file=fields.get('archive_file')[0]
-                archive_link=fields.get('archive_link')[0]
-                archive_format=fields.get('archive_format')[0]
-                htop=fields.get('htop_token')[0]
                 if(int(htop.strip())!=get_totp_token(secret)):
                     print('htop token mismatch')
                     print(htop.strip()+' vs '+str(get_totp_token(secret)))
                     self.wfile.write(bytes('htop token mismatch','utf-8'))
                     self.connection.shutdown(1)
                     return
+                archive_name=fields.get('archive_name')[0]
+                archive_file=fields.get('archive_file')[0]
+                archive_link=fields.get('archive_link')[0]
+                archive_format=fields.get('archive_format')[0]
+                htop=fields.get('htop_token')[0]
                 if(len(archive_file)>0):
                     assert archive_type=='null'
                     archive_type='file'
